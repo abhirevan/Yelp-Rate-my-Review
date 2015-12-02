@@ -2,25 +2,34 @@ import csv
 import argparse
 import numpy as np
 import os
+import pandas as pd
 from textblob import TextBlob
 from sklearn import cluster
 
 
-def kmpp(data_matrix, k):
+def convert_to_stars(labels, sorted_centroids, mode):
+    stars = []
+    if mode == 0: #means positive
+        offset=4
+    else:
+        offset=1
+    for l in labels:
+        stars.append(sorted_centroids.index(l) + offset)
+    return stars
+
+
+def kmpp(data_matrix, k, mode):
     kmeans = cluster.KMeans(init='k-means++', n_clusters=k, n_init=10)
     c = kmeans.fit(data_matrix)
     centroids = c.cluster_centers_
     labels = c.labels_
+
+    # find sorted labels
+    centroids_l = centroids.tolist()
+    sorted_centroids = [centroids_l.index(x) for x in sorted(centroids_l)]
+
+    labels = convert_to_stars(labels, sorted_centroids, mode)
     return centroids, labels
-
-
-def aggclustering(data_matrix, k, linkage, connectivity):
-    model = cluster.AgglomerativeClustering(linkage=linkage,
-                                            connectivity=connectivity,
-                                            n_clusters=k)
-    c = model.fit(data_matrix)
-    labels = c.labels_
-    return labels
 
 
 def write_data(ip_csv, op_csv, labels, type):
@@ -30,7 +39,7 @@ def write_data(ip_csv, op_csv, labels, type):
         wtr.writerow(next(rdr) + [type])
         i = 0
         for r in rdr:
-            wtr.writerow((r) + [labels[i] + 1])
+            wtr.writerow((r) + [labels[i]])
             i += 1
 
 
@@ -71,13 +80,13 @@ def extract_sentiment(ip_csv, op_csv):
         wtr.writerow(next(rdr) + ["Polarity"])
         i = 0
         for r in rdr:
-            #print i
+            # print i
             blob = TextBlob(r[1].decode("utf8"))
             wtr.writerow((r) + [blob.sentiment.polarity])
-            #i += 1
+            # i += 1
 
 
-def kmeans_clustering(ip_csv):
+def kmeans_clustering(ip_csv, mode):
     op_csv = ip_csv + "_"
     data = []
     with open(ip_csv, "rb") as source:
@@ -87,7 +96,7 @@ def kmeans_clustering(ip_csv):
             data.append(float(r[3]))
     data = np.array(data).reshape(-1, 1)
     # print data
-    centroids, labels = kmpp(data, 5)
+    centroids, labels = kmpp(data, 2, mode)
     # print centroids
     i = 0
     for c in np.nditer(centroids):
@@ -98,47 +107,55 @@ def kmeans_clustering(ip_csv):
     os.rename(op_csv, ip_csv)
 
 
-def agglomerative_clustering(ip_csv, linkage, connectivity):
-    op_csv = ip_csv + "_"
-    data = []
-    with open(ip_csv, "rb") as source:
-        rdr = csv.reader(source)
-        next(rdr)
-        for r in rdr:
-            data.append(float(r[3]))
-    data = np.array(data).reshape(-1, 1)
-    # print data
-    labels = aggclustering(data, 5, linkage, connectivity)
-    # print centroids
-
-    write_data(ip_csv, op_csv, labels, "Agglomerative_ward")
-    os.remove(ip_csv)
-    os.rename(op_csv, ip_csv)
-
-
-def split_files(op_csv, range):
-    strings = op_csv.split('.csv')
-    op_csv_list = []
-    wrts = []
+def split_files(ip_csv, range):
+    strings = ip_csv.split('.csv')
+    pos_op_csv_lst = []
+    neg_op_csv_lst = []
+    wrts_p = []
+    wrts_n = []
     i = 0
-    with open(op_csv, "rb") as source:
+    with open(ip_csv, "rb") as source:
         rdr = csv.reader(source)
         header = next(rdr)
         while i < len(range):
-            op_csv_list.append(strings[0] + "_" + str(i) + ".csv")
-            wrts.append(csv.writer(open(op_csv_list[i], "wb")))
-            wrts[i].writerow(header)
+            pos_op_csv_lst.append(strings[0] + "_clusp" + str(i) + ".csv")
+            neg_op_csv_lst.append(strings[0] + "_clusn" + str(i) + ".csv")
+            wrts_p.append(csv.writer(open(pos_op_csv_lst[i], "wb")))
+            wrts_p[i].writerow(header)
+            wrts_n.append(csv.writer(open(neg_op_csv_lst[i], "wb")))
+            wrts_n[i].writerow(header)
             i += 1
-
         for r in rdr:
             l = len(r[1])
             # find the correct split file
             i = 0
             while l > range[i]:
                 i += 1
-            wrts[i].writerow(r)
+            if float(r[3]) >= 0:  # Polairty
+                wrts_p[i].writerow(r)
+            else:
+                wrts_n[i].writerow(r)
+        return pos_op_csv_lst, neg_op_csv_lst
 
-        return op_csv_list
+
+def strip_reviews(ip_csv):
+    op_csv = '{0}_strip.csv'.format(ip_csv.split('.csv')[0])
+    strip_csv = '{0}_strip_3star.csv'.format(ip_csv.split('.csv')[0])
+
+    with open(ip_csv, "rb") as source, open(op_csv, "wb") as result, open(strip_csv, "wb") as strip:
+        rdr = csv.reader(source)
+        wtr_result = csv.writer(result)
+        wtr_strip = csv.writer(strip)
+        header = next(rdr)
+        wtr_result.writerow(header)
+        wtr_strip.writerow(header)
+        for r in rdr:
+            if (int(r[2]) == 3):
+                wtr_strip.writerow(r)
+            else:
+                wtr_result.writerow(r)
+
+    return op_csv
 
 
 if __name__ == '__main__':
@@ -151,30 +168,33 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     ip_csv = args.ip_csv
-    op_csv = '{0}_clus.csv'.format(ip_csv.split('.csv')[0])
 
-    print "-" * 100
-    print "Calculating polarity"
-    extract_sentiment(ip_csv, op_csv)
-    print "-" * 100
+    print "Extract Level 3 reviews"
+    ip_csv = strip_reviews(ip_csv)
+
     print "Splitting files polarity"
-    range = [100, 200, 400, 600, 1000, 1500, 2000, 10000]
-    op_csv_list = split_files(op_csv,range)
+    range = [100, 10000]
+    pos_op_csv_lst, neg_op_csv_lst = split_files(ip_csv, range)
 
-    for file in op_csv_list:
+    # Positive list
+    for file in pos_op_csv_lst:
         print "Staring with kmeans++ for ", file
-        kmeans_clustering(file)
+        kmeans_clustering(file, 0)  # 0 - positive
         print "-" * 100
         print "Results stats for ", file
-        print_stats(file, 4)
+        # print_stats(file, 4)
         print "-" * 100
         command = raw_input("Continue?")
         if (command == 'n'):
             break
 
-    '''
-    print "Staring with agglomerative_clustering with ward"
-    agglomerative_clustering(op_csv, 'ward', None)
-    print_stats(op_csv, 5)
-    print "-" * 100
-    '''
+    for file in neg_op_csv_lst:
+        print "Staring with kmeans++ for ", file
+        kmeans_clustering(file, 1)  # 1 - negative
+        print "-" * 100
+        print "Results stats for ", file
+        # print_stats(file, 4)
+        print "-" * 100
+        command = raw_input("Continue?")
+        if (command == 'n'):
+            break
