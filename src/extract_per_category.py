@@ -1,21 +1,15 @@
 __author__ = 'priyanka'
-import argparse
 import sys
-import csv
 import pandas as pd
 
 if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding("utf-8")
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--cat', required=False, type=str)
-   # parser.add_argument('--f', required=True, type=str, help='The input csv file to extract.')
-    args = parser.parse_args()
     business_data = pd.read_csv('data/input/yelp_academic_dataset_business.csv', index_col = ('business_id'))
     review_data = pd.read_csv('data/input/yelp_academic_dataset_review_ext.csv', index_col = ('business_id'))
 
     #filename = args.f
-    cat = args.cat
+    cat = raw_input("Category?")
     op_csv = 'data/input/yelp_academic_dataset_review_'+cat+'.csv'
     sample_business_ids = []
     for num, item in enumerate(business_data.index):

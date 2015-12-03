@@ -2,19 +2,20 @@ import csv
 import argparse
 import numpy as np
 import os
-import pandas as pd
+from pandas import DataFrame
 from textblob import TextBlob
 from sklearn import cluster
-
+import pandas as pd
+from sklearn.metrics import precision_recall_fscore_support,confusion_matrix
 
 def convert_to_stars(labels, sorted_centroids, mode):
     stars = []
-    if mode == 0: #means positive
-        offset=4
+    if mode == 0:  # means positive
+        offset = [4,5,5,5,5,5]
     else:
-        offset=1
+        offset = [1,1,1,1,1,2]
     for l in labels:
-        stars.append(sorted_centroids.index(l) + offset)
+        stars.append(offset[sorted_centroids.index(l)])
     return stars
 
 
@@ -96,7 +97,7 @@ def kmeans_clustering(ip_csv, mode):
             data.append(float(r[3]))
     data = np.array(data).reshape(-1, 1)
     # print data
-    centroids, labels = kmpp(data, 2, mode)
+    centroids, labels = kmpp(data, 6, mode)
     # print centroids
     i = 0
     for c in np.nditer(centroids):
@@ -131,7 +132,8 @@ def split_files(ip_csv, range):
             i = 0
             while l > range[i]:
                 i += 1
-            if float(r[3]) >= 0:  # Polairty
+
+            if (float(r[3]) >= 0):  # Polairty
                 wrts_p[i].writerow(r)
             else:
                 wrts_n[i].writerow(r)
@@ -150,12 +152,33 @@ def strip_reviews(ip_csv):
         wtr_result.writerow(header)
         wtr_strip.writerow(header)
         for r in rdr:
-            if (int(r[2]) == 3):
+            if (float(r[2]) == 3):# or (float(r[3]) == 0):
                 wtr_strip.writerow(r)
             else:
                 wtr_result.writerow(r)
 
     return op_csv
+
+
+def print_analysis(pos_op_csv_lst, neg_op_csv_lst):
+    truth_table = np.zeros((5, 5))
+    #files = pos_op_csv_lst + neg_op_csv_lst
+    files = pos_op_csv_lst[:-1] + neg_op_csv_lst[:-1]
+    y_true = []
+    y_pred = []
+    for file in files:
+        file_csv = pd.read_csv(file)
+        for i, row in enumerate(file_csv.values):
+            y_true.append(row[2])
+            y_pred.append(row[4])
+            truth_table[row[2] - 1, row[4] - 1] += 1
+
+    print DataFrame(truth_table)
+    print confusion_matrix(y_true, y_pred)
+    print precision_recall_fscore_support(y_true, y_pred, average='micro')
+
+
+
 
 
 if __name__ == '__main__':
@@ -173,7 +196,7 @@ if __name__ == '__main__':
     ip_csv = strip_reviews(ip_csv)
 
     print "Splitting files polarity"
-    range = [100, 10000]
+    range = [100,200,300,400,500,600,700,800,10000]
     pos_op_csv_lst, neg_op_csv_lst = split_files(ip_csv, range)
 
     # Positive list
@@ -182,19 +205,13 @@ if __name__ == '__main__':
         kmeans_clustering(file, 0)  # 0 - positive
         print "-" * 100
         print "Results stats for ", file
-        # print_stats(file, 4)
         print "-" * 100
-        command = raw_input("Continue?")
-        if (command == 'n'):
-            break
 
     for file in neg_op_csv_lst:
         print "Staring with kmeans++ for ", file
         kmeans_clustering(file, 1)  # 1 - negative
         print "-" * 100
         print "Results stats for ", file
-        # print_stats(file, 4)
         print "-" * 100
-        command = raw_input("Continue?")
-        if (command == 'n'):
-            break
+
+    print_analysis(pos_op_csv_lst, neg_op_csv_lst)

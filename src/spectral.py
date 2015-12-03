@@ -8,23 +8,6 @@ import numpy as np
 from numpy import *
 import os
 
-def kmpp(data_matrix, k):
-    kmeans = cluster.KMeans(init='k-means++', n_clusters=k, n_init=10)
-    c = kmeans.fit(data_matrix)
-    centroids = c.cluster_centers_
-    labels = c.labels_
-    return centroids, labels
-
-
-def aggclustering(data_matrix, k, linkage, connectivity):
-    model = cluster.AgglomerativeClustering(linkage=linkage,
-                                            connectivity=connectivity,
-                                            n_clusters=k)
-    c = model.fit(data_matrix)
-    labels = c.labels_
-    return labels
-
-
 def write_data(ip_csv, op_csv, labels, type):
     with open(ip_csv, "rb") as source, open(op_csv, "wb") as result:
         rdr = csv.reader(source)
@@ -64,58 +47,6 @@ def print_stats(ip_csv, col):
             j += 1
         i += 1
 
-
-def extract_sentiment(ip_csv, op_csv):
-    # op_csv = ip_csv + "_"
-    with open(ip_csv, "rb") as source, open(op_csv, "wb") as result:
-        rdr = csv.reader(source)
-        wtr = csv.writer(result)
-        wtr.writerow(next(rdr) + ["Polarity"])
-        i = 0
-        for r in rdr:
-            blob = TextBlob(r[1].decode("utf8"))
-            wtr.writerow((r) + [blob.sentiment.polarity])
-
-
-def kmeans_clustering(ip_csv):
-    op_csv = ip_csv + "_"
-    data = []
-    with open(ip_csv, "rb") as source:
-        rdr = csv.reader(source)
-        next(rdr)
-        for r in rdr:
-            data.append(float(r[3]))
-    data = np.array(data).reshape(-1, 1)
-    # print data
-    centroids, labels = kmpp(data, 5)
-    # print centroids
-    i = 0
-    for c in np.nditer(centroids):
-        print "Centroid " + str(i), "->", c
-        i += 1
-    write_data(ip_csv, op_csv, labels, "Kmeans++")
-    os.remove(ip_csv)
-    os.rename(op_csv, ip_csv)
-
-
-def agglomerative_clustering(ip_csv, linkage, connectivity):
-    op_csv = ip_csv + "_"
-    data = []
-    with open(ip_csv, "rb") as source:
-        rdr = csv.reader(source)
-        next(rdr)
-        for r in rdr:
-            data.append(float(r[3]))
-    data = np.array(data).reshape(-1, 1)
-    # print data
-    labels = aggclustering(data, 5, linkage, connectivity)
-    # print centroids
-
-    write_data(ip_csv, op_csv, labels, "Agglomerative_ward")
-    os.remove(ip_csv)
-    os.rename(op_csv, ip_csv)
-
-
 def gaussian_distance(data, sigma=1.0):
     m = np.ndarray.shape(data)[0]
     adjacency = np.ndarray.zeros((m, m))
@@ -149,7 +80,7 @@ def spectral_clustering(ip_csv):
         for r in rdr:
             data.append(float(r[3]))
 
-
+    '''
     #Spectral clustering with abs distance affinity matrix
     print "Running Spectral clustering with abs distance affinity matrix"
     clustering1 = cluster.SpectralClustering(5, affinity='precomputed', eigen_solver='arpack')
@@ -161,8 +92,8 @@ def spectral_clustering(ip_csv):
     write_data(ip_csv,op_csv,clusters,"Spectral_Abs")
     os.remove(ip_csv)
     os.rename(op_csv, ip_csv)
-
     '''
+
     #Spectral clustering with gaussian distance affintty matrix
     print "Running Spectral clustering with gaussian distance affinity matrix"
     clustering2 = cluster.SpectralClustering(5, affinity='precomputed', eigen_solver='arpack')
@@ -176,7 +107,7 @@ def spectral_clustering(ip_csv):
     write_data(ip_csv,op_csv,clusters,"Spectral_Gauss")
     os.remove(ip_csv)
     os.rename(op_csv, ip_csv)
-    '''
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -197,12 +128,4 @@ if __name__ == '__main__':
     #print "Predicting data"
     #print_stats(op_csv, 4)
     #print "-" * 100
-'''
-    print "Staring with agglomerative_clustering with ward"
-    agglomerative_clustering(op_csv, 'ward', None)
-    print_stats(op_csv, 5)
-    print "-" * 100
-    print "Staring with agglomerative_clustering with ward"
-    agglomerative_clustering(op_csv, 'ward', None)
-    print_stats(op_csv, 5)
-    '''
+

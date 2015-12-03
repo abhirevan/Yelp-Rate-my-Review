@@ -140,12 +140,4 @@ if __name__ == '__main__':
     print "Predicting data"
     print_stats(op_csv, 4)
     print "-" * 100
-'''
-    print "Staring with agglomerative_clustering with ward"
-    agglomerative_clustering(op_csv, 'ward', None)
-    print_stats(op_csv, 5)
-    print "-" * 100
-    print "Staring with agglomerative_clustering with ward"
-    agglomerative_clustering(op_csv, 'ward', None)
-    print_stats(op_csv, 5)
-    '''
+

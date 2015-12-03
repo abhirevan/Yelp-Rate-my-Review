@@ -93,21 +93,8 @@ def get_row(line_contents, column_names):
     return row
 
 if __name__ == '__main__':
-    """Convert a yelp dataset file from json to csv."""
 
-    parser = argparse.ArgumentParser(
-            description='Convert Yelp Dataset Challenge data from JSON format to CSV.',
-            )
-
-    parser.add_argument(
-            'json_file',
-            type=str,
-            help='The json file to convert.',
-            )
-
-    args = parser.parse_args()
-
-    json_file = args.json_file
+    json_file = "data\input\\backup\yelp_academic_dataset_review.json"
     csv_file = '{0}.csv'.format(json_file.split('.json')[0])
 
     column_names = get_superset_of_column_names_from_file(json_file)
