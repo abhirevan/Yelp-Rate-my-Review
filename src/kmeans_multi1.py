@@ -114,7 +114,7 @@ def split_files(ip_csv, range):
         rdr = csv.reader(source)
         header = next(rdr)
         while i < len(range):
-            op_csv_list.append(strings[0] + "_clus" + str(i) + ".csv")
+            op_csv_list.append(strings[0] + "_mclus" + str(i) + ".csv")
             wrts.append(csv.writer(open(op_csv_list[i], "wb")))
             wrts[i].writerow(header)
             i += 1
@@ -130,17 +130,14 @@ def split_files(ip_csv, range):
         return op_csv_list
 
 def print_analysis(op_csv_list):
-    truth_table = np.zeros((5, 5))
     y_true = []
     y_pred = []
-    for file in op_csv_list:
+    files = op_csv_list[:-1]
+    for file in files:
         file_csv = pd.read_csv(file)
         for i, row in enumerate(file_csv.values):
             y_true.append(row[2])
             y_pred.append(row[4])
-            truth_table[row[2] - 1, row[4] - 1] += 1
-
-    print DataFrame(truth_table)
     print confusion_matrix(y_true, y_pred)
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
 
@@ -156,16 +153,11 @@ if __name__ == '__main__':
     ip_csv = args.ip_csv
 
     print "Splitting files polarity"
-    range = [100, 200, 300, 400, 500, 600, 10000]
+    range = [100,200,300,400,500,600,700,800,900,1000,10000]
     op_csv_list = split_files(ip_csv, range)
 
     for file in op_csv_list:
         print "Staring with kmeans++ for ", file
         kmeans_clustering(file)
         print "-" * 100
-        print "Results stats for ", file
-        print_stats(file, 4)
-        print "-" * 100
-
-
     print_analysis(op_csv_list)

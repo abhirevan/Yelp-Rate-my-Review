@@ -7,6 +7,8 @@ from textblob import TextBlob
 from sklearn import cluster
 import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support,confusion_matrix
+import shutil
+
 
 
 def convert_to_stars(labels, sorted_centroids):
@@ -130,7 +132,6 @@ def split_files(ip_csv, range):
         return op_csv_list
 
 def print_analysis(op_csv_list):
-    truth_table = np.zeros((5, 5))
     y_true = []
     y_pred = []
     for file in op_csv_list:
@@ -138,9 +139,7 @@ def print_analysis(op_csv_list):
         for i, row in enumerate(file_csv.values):
             y_true.append(row[2])
             y_pred.append(row[4])
-            truth_table[row[2] - 1, row[4] - 1] += 1
 
-    print DataFrame(truth_table)
     print confusion_matrix(y_true, y_pred)
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
 
@@ -154,18 +153,11 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     ip_csv = args.ip_csv
+    op_csv = '{0}_clus.csv'.format(ip_csv.split('.csv')[0])
 
-    print "Splitting files polarity"
-    range = [100, 200, 300, 400, 500, 600, 10000]
-    op_csv_list = split_files(ip_csv, range)
+    shutil.copyfile(ip_csv,op_csv)
+    print "Staring with kmeans++"
+    kmeans_clustering(op_csv)
+    print "-" * 100
 
-    for file in op_csv_list:
-        print "Staring with kmeans++ for ", file
-        kmeans_clustering(file)
-        print "-" * 100
-        print "Results stats for ", file
-        print_stats(file, 4)
-        print "-" * 100
-
-
-    print_analysis(op_csv_list)
+    print_analysis([op_csv])

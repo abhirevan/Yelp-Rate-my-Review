@@ -2,18 +2,18 @@ import csv
 import argparse
 import numpy as np
 import os
-from pandas import DataFrame
 from textblob import TextBlob
 from sklearn import cluster
 import pandas as pd
-from sklearn.metrics import precision_recall_fscore_support,confusion_matrix
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+
 
 def convert_to_stars(labels, sorted_centroids, mode):
     stars = []
     if mode == 0:  # means positive
-        offset = [4,5,5,5,5,5]
+        offset = [4, 5, 5, 5, 5, 5]
     else:
-        offset = [1,1,1,1,1,2]
+        offset = [1, 1, 1, 1, 1, 2]
     for l in labels:
         stars.append(offset[sorted_centroids.index(l)])
     return stars
@@ -42,35 +42,6 @@ def write_data(ip_csv, op_csv, labels, type):
         for r in rdr:
             wtr.writerow((r) + [labels[i]])
             i += 1
-
-
-def print_stats(ip_csv, col):
-    stats = {}
-    i = 1
-    while i <= 5:
-        j = 1
-        while j <= 5:
-            stats[str(i) + "-" + str(j)] = 0
-            j += 1
-        i += 1
-    with open(ip_csv, "rb") as source:
-        rdr = csv.reader(source)
-        next(rdr)
-        for r in rdr:
-            t = int(r[2])  # truth
-            c = int(r[col])  # result
-            k = str(c) + "-" + str(t)
-            stats[k] = stats[k] + 1
-
-    i = 1
-    while i <= 5:
-        j = 1
-        print "For cluster: ", i
-        while j <= 5:
-            k = str(i) + "-" + str(j)
-            print k, " -> ", stats[k]
-            j += 1
-        i += 1
 
 
 def extract_sentiment(ip_csv, op_csv):
@@ -119,8 +90,8 @@ def split_files(ip_csv, range):
         rdr = csv.reader(source)
         header = next(rdr)
         while i < len(range):
-            pos_op_csv_lst.append(strings[0] + "_clusp" + str(i) + ".csv")
-            neg_op_csv_lst.append(strings[0] + "_clusn" + str(i) + ".csv")
+            pos_op_csv_lst.append(strings[0] + "_mclusp" + str(i) + ".csv")
+            neg_op_csv_lst.append(strings[0] + "_mclusn" + str(i) + ".csv")
             wrts_p.append(csv.writer(open(pos_op_csv_lst[i], "wb")))
             wrts_p[i].writerow(header)
             wrts_n.append(csv.writer(open(neg_op_csv_lst[i], "wb")))
@@ -132,7 +103,6 @@ def split_files(ip_csv, range):
             i = 0
             while l > range[i]:
                 i += 1
-
             if (float(r[3]) >= 0):  # Polairty
                 wrts_p[i].writerow(r)
             else:
@@ -152,7 +122,7 @@ def strip_reviews(ip_csv):
         wtr_result.writerow(header)
         wtr_strip.writerow(header)
         for r in rdr:
-            if (float(r[2]) == 3):# or (float(r[3]) == 0):
+            if (float(r[2]) == 3):  # or (float(r[3]) == 0):
                 wtr_strip.writerow(r)
             else:
                 wtr_result.writerow(r)
@@ -161,8 +131,6 @@ def strip_reviews(ip_csv):
 
 
 def print_analysis(pos_op_csv_lst, neg_op_csv_lst):
-    truth_table = np.zeros((5, 5))
-    #files = pos_op_csv_lst + neg_op_csv_lst
     files = pos_op_csv_lst[:-1] + neg_op_csv_lst[:-1]
     y_true = []
     y_pred = []
@@ -171,14 +139,9 @@ def print_analysis(pos_op_csv_lst, neg_op_csv_lst):
         for i, row in enumerate(file_csv.values):
             y_true.append(row[2])
             y_pred.append(row[4])
-            truth_table[row[2] - 1, row[4] - 1] += 1
 
-    print DataFrame(truth_table)
     print confusion_matrix(y_true, y_pred)
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
-
-
-
 
 
 if __name__ == '__main__':
@@ -196,7 +159,7 @@ if __name__ == '__main__':
     ip_csv = strip_reviews(ip_csv)
 
     print "Splitting files polarity"
-    range = [100,200,300,400,500,600,700,800,10000]
+    range = [100, 10000]
     pos_op_csv_lst, neg_op_csv_lst = split_files(ip_csv, range)
 
     # Positive list

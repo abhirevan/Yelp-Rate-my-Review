@@ -11,7 +11,7 @@ def extract_sentiment(ip_csv, op_csv):
         i = 0
         for r in rdr:
             blob = TextBlob(r[1].decode("utf8"))
-            wtr.writerow((r) + [blob.sentiment.polarity])
+            wtr.writerow(r + [blob.sentiment.polarity])
 
 
 if __name__ == '__main__':

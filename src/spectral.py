@@ -48,8 +48,8 @@ def print_stats(ip_csv, col):
         i += 1
 
 def gaussian_distance(data, sigma=1.0):
-    m = np.ndarray.shape(data)[0]
-    adjacency = np.ndarray.zeros((m, m))
+    m = shape(data)[0]
+    adjacency = zeros((m, m))
 
     for i in range(0, m):
         for j in range(0, m):
@@ -57,52 +57,30 @@ def gaussian_distance(data, sigma=1.0):
                 continue
             adjacency[j, i] = adjacency[i, j] = sum((data[i] - data[j])**2)
 
-    adjacency = np.exp(-adjacency / (2 * sigma ** 2)) - np.ndarray.identity(m)
+    adjacency = np.exp(-adjacency / (2 * sigma ** 2)) - identity(m)
 
     return adjacency
 
-def abs_distance(data):
-    m = shape(data)[0]
-    adjacency = zeros((m, m))
-    for i in range(0, m):
-        for j in range(0, m):
-            if i >= j: # since it's symmetric, just assign the upper half the same time we assign the lower half
-                continue
-            adjacency[j, i] = adjacency[i, j] = abs(data[i] - data[j])
-    return adjacency
 
 def spectral_clustering(ip_csv):
     op_csv = ip_csv + "_"
     data = []
+    print ip_csv
     with open(ip_csv, "rb") as source:
         rdr = csv.reader(source)
         next(rdr)
         for r in rdr:
+            print float(r[3])
             data.append(float(r[3]))
 
-    '''
-    #Spectral clustering with abs distance affinity matrix
-    print "Running Spectral clustering with abs distance affinity matrix"
-    clustering1 = cluster.SpectralClustering(5, affinity='precomputed', eigen_solver='arpack')
-    affinity1 = abs_distance(data)
-    print affinity1
-    clustering1.fit(affinity1)
-    clusters = clustering1.fit_predict(affinity1)
-    print clusters
-    write_data(ip_csv,op_csv,clusters,"Spectral_Abs")
-    os.remove(ip_csv)
-    os.rename(op_csv, ip_csv)
-    '''
 
     #Spectral clustering with gaussian distance affintty matrix
     print "Running Spectral clustering with gaussian distance affinity matrix"
-    clustering2 = cluster.SpectralClustering(5, affinity='precomputed', eigen_solver='arpack')
-    affinity2 = gaussian_distance(data)
-    command=raw_input("?")
-    print affinity2
-    clustering2.fit(affinity2)
-    clusters = clustering2.fit_predict(affinity2)
-    command=raw_input("?")
+    clustering = cluster.SpectralClustering(5, affinity='precomputed', eigen_solver='arpack')
+    affinity = gaussian_distance(data)
+    print affinity
+    clustering.fit(affinity)
+    clusters = clustering.fit_predict(affinity)
     print clusters
     write_data(ip_csv,op_csv,clusters,"Spectral_Gauss")
     os.remove(ip_csv)

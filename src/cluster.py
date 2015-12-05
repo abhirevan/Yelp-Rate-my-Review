@@ -4,6 +4,8 @@ import numpy as np
 import os
 from textblob import TextBlob
 from sklearn import cluster
+import shutil
+
 
 
 def kmpp(data_matrix, k):
