@@ -13,6 +13,15 @@ def extract_sentiment(ip_csv, op_csv):
             blob = TextBlob(r[1].decode("utf8"))
             wtr.writerow(r + [blob.sentiment.polarity])
 
+def extract_sentiment_subjectivity(ip_csv, op_csv):
+    with open(ip_csv, "rU") as source, open(op_csv, "wb") as result:
+        rdr = csv.reader(source)
+        wtr = csv.writer(result)
+        wtr.writerow(next(rdr) + ["Polarity"]+["Subjectivity"])
+        i = 0
+        for r in rdr:
+            blob = TextBlob(r[0].decode("utf8"))
+            wtr.writerow(r + [blob.sentiment.polarity] + [blob.sentiment.subjectivity])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -28,5 +37,5 @@ if __name__ == '__main__':
     op_csv = '{0}_senti.csv'.format(ip_csv.split('.csv')[0])
     print "-" * 100
     print "Calculating polarity"
-    extract_sentiment(ip_csv, op_csv)
+    extract_sentiment_subjectivity(ip_csv, op_csv)
     print "-" * 100

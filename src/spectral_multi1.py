@@ -7,7 +7,6 @@ import os
 from sklearn import cluster
 import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
-import shutil
 
 
 def write_data(ip_csv, op_csv, labels, type):
@@ -37,6 +36,7 @@ def print_analysis(op_csv_list):
 def gaussian_distance(data, sigma=1.0):
     m = shape(data)[0]
     adjacency = zeros((m, m))
+
     for i in range(0, m):
         for j in range(0, m):
             if i >= j:  # since it's symmetric, just assign the upper half the same time we assign the lower half
@@ -45,24 +45,6 @@ def gaussian_distance(data, sigma=1.0):
     adjacency = exp(-adjacency / (2 * sigma ** 2)) - identity(m)
 
     return adjacency
-
-
-'''
-def update_labels(truth, clusters):
-    print "Updating labels"
-    labels = {}
-    for idx, c in enumerate(clusters):
-        lst = labels.get(c,[])
-        lst.append(truth[idx])
-        labels[c]=lst
-    replace_labels = {}
-    for k, v in labels.iteritems():
-        print v
-        mst_common = most_common(v)
-        print mst_common
-        replace_labels[k] = mst_common
-    print replace_labels
-'''
 
 
 def convert_to_stars(labels, sorted_centroids):
@@ -78,7 +60,7 @@ def update_labels(polarity, clusters, k):
     df_grouped = df.groupby('clusters')
     centroid = [0] * k
     for name, group in df_grouped:
-        centroid[name] = mean(group['polarity'])
+        centroid[name] = median(group['polarity'])
 
     sorted_centroids = [centroid.index(x) for x in sorted(centroid)]
     labels = convert_to_stars(clusters, sorted_centroids)
@@ -97,8 +79,7 @@ def spectral_clustering(ip_csv, k):
             truth.append(int(r[2]))
     # Spectral clustering with gaussian distance affintty matrix
     print "Running Spectral clustering with gaussian distance affinity matrix"
-    #clustering = cluster.SpectralClustering(k, affinity='precomputed', eigen_solver='arpack')
-    clustering = cluster.SpectralClustering(k, affinity='nearest_neighbors', eigen_solver='arpack')
+    clustering = cluster.SpectralClustering(k, affinity='precomputed', eigen_solver='arpack')
     affinity = gaussian_distance(data)
     print "Calculated Gaussian distance"
     clustering.fit(affinity)
@@ -111,6 +92,44 @@ def spectral_clustering(ip_csv, k):
     os.rename(op_csv, ip_csv)
 
 
+def split_files(ip_csv, value_range):
+    strings = ip_csv.split('.csv')
+    op_csv_list = []
+    wrts = []
+    i = 0
+    with open(ip_csv, "rb") as source:
+        rdr = csv.reader(source)
+        header = next(rdr)
+        while i < len(value_range):
+            op_csv_list.append(strings[0] + "_mclus" + str(i) + ".csv")
+            wrts.append(csv.writer(open(op_csv_list[i], "wb")))
+            wrts[i].writerow(header)
+            i += 1
+
+        for r in rdr:
+            l = len(r[1])
+            # find the correct split file
+            i = 0
+            while l > value_range[i]:
+                i += 1
+            wrts[i].writerow(r)
+
+        return op_csv_list
+
+
+def print_analysis(op_csv_list):
+    y_true = []
+    y_pred = []
+    files = op_csv_list[:-1]
+    for file in files:
+        file_csv = pd.read_csv(file)
+        for i, row in enumerate(file_csv.values):
+            y_true.append(row[2])
+            y_pred.append(row[4])
+    print confusion_matrix(y_true, y_pred)
+    print precision_recall_fscore_support(y_true, y_pred, average='micro')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Find clustering for csv',
@@ -121,12 +140,13 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     ip_csv = args.ip_csv
-    op_csv = '{0}_spec.csv'.format(ip_csv.split('.csv')[0])
 
-    shutil.copyfile(ip_csv, op_csv)
-    print "Staring with spectral_clustering++"
-    spectral_clustering(op_csv, 5)
-    print "-" * 100
-    print "Predicting data"
-    print_analysis([op_csv])
-    print "-" * 100
+    print "Splitting files polarity"
+    value_range = [100, 10000]
+    op_csv_list = split_files(ip_csv, value_range)
+
+    for file in op_csv_list[:-1]:
+        print "Staring with kmeans++ for ", file
+        spectral_clustering(file, 5)
+        print "-" * 100
+    print_analysis(op_csv_list)

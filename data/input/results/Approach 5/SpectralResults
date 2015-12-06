@@ -1,0 +1,25 @@
+Spectral errors
+
+3-th leading minor not positive definite
+the leading minor of order 16 of 'b' is not positive definite. The factorization of 'b' could not be completed and no eigenvalues or eigenvectors were computed.
+
+Out of memory errors
+
+
+Predicting data
+[[  33  901 1186   56    2]
+ [   2  107  355   21    1]
+ [   0   42  321   43    5]
+ [   1   29  577  246   12]
+ [   0   46 1633 1577  107]]
+(0.11146104340681912, 0.11146104340681912, 0.11146104340681912, None)
+---------------------------------------------------------------------------------------------------
+
+Predicting data
+[[  33  901 1186   56    2]
+ [   2  107  355   21    1]
+ [   0   42  321   43    5]
+ [   1   29  577  246   12]
+ [   0   46 1635 1575  107]]
+(0.11146104340681912, 0.11146104340681912, 0.11146104340681912, None)
+----------------------------------------------------------------------------------------------------
