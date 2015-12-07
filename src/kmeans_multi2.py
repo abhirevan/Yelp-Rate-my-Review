@@ -58,6 +58,7 @@ def extract_sentiment(ip_csv, op_csv):
             # i += 1
 
 
+
 def kmeans_clustering(ip_csv, mode):
     op_csv = ip_csv + "_"
     data = []
@@ -77,6 +78,7 @@ def kmeans_clustering(ip_csv, mode):
     write_data(ip_csv, op_csv, labels, "Kmeans++")
     os.remove(ip_csv)
     os.rename(op_csv, ip_csv)
+
 
 
 def split_files(ip_csv, range):

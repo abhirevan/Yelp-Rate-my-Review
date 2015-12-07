@@ -43,30 +43,19 @@ def write_data(ip_csv, op_csv, labels, type):
             wtr.writerow((r) + [labels[i]])
             i += 1
 
-
-def extract_sentiment(ip_csv, op_csv):
-    # op_csv = ip_csv + "_"
-    with open(ip_csv, "rU") as source, open(op_csv, "wb") as result:
-        rdr = csv.reader(source)
-        wtr = csv.writer(result)
-        wtr.writerow(next(rdr) + ["Polarity"])
-        i = 0
-        for r in rdr:
-            # print i
-            blob = TextBlob(r[1].decode("utf8"))
-            wtr.writerow((r) + [blob.sentiment.polarity])
-            # i += 1
-
-
 def kmeans_clustering(ip_csv, mode):
     op_csv = ip_csv + "_"
     data = []
     with open(ip_csv, "rb") as source:
         rdr = csv.reader(source)
         next(rdr)
+        i = 0
         for r in rdr:
-            data.append(float(r[3]))
-    data = np.array(data).reshape(-1, 1)
+            data.append([])
+            data[i].append(float(r[3]))
+            data[i].append(float(r[4]))
+            i += 1
+    data = np.array(data)  # .reshape(-1, 1)
     # print data
     centroids, labels = kmpp(data, 6, mode)
     # print centroids
@@ -138,7 +127,7 @@ def print_analysis(pos_op_csv_lst, neg_op_csv_lst):
         file_csv = pd.read_csv(file)
         for i, row in enumerate(file_csv.values):
             y_true.append(row[2])
-            y_pred.append(row[4])
+            y_pred.append(row[5])
 
     print confusion_matrix(y_true, y_pred)
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
@@ -159,7 +148,10 @@ if __name__ == '__main__':
     ip_csv = strip_reviews(ip_csv)
 
     print "Splitting files polarity"
-    range = [100, 10000]
+    #range = [100, 10000]
+    range = [100, 200, 300, 10000]
+    #range = [100, 200, 300, 400, 500, 10000]
+    #range = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 10000]
     pos_op_csv_lst, neg_op_csv_lst = split_files(ip_csv, range)
 
     # Positive list

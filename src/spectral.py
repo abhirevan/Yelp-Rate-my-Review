@@ -28,7 +28,7 @@ def print_analysis(op_csv_list):
         file_csv = pd.read_csv(file)
         for i, row in enumerate(file_csv.values):
             y_true.append(row[2])
-            y_pred.append(row[4])
+            y_pred.append(row[5])
 
     print confusion_matrix(y_true, y_pred)
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
@@ -97,8 +97,8 @@ def spectral_clustering(ip_csv, k):
             truth.append(int(r[2]))
     # Spectral clustering with gaussian distance affintty matrix
     print "Running Spectral clustering with gaussian distance affinity matrix"
-    #clustering = cluster.SpectralClustering(k, affinity='precomputed', eigen_solver='arpack')
-    clustering = cluster.SpectralClustering(k, affinity='nearest_neighbors', eigen_solver='arpack')
+    clustering = cluster.SpectralClustering(k, affinity='precomputed', eigen_solver='arpack')
+    #clustering = cluster.SpectralClustering(k, affinity='nearest_neighbors', eigen_solver='arpack')
     affinity = gaussian_distance(data)
     print "Calculated Gaussian distance"
     clustering.fit(affinity)

@@ -27,7 +27,7 @@ def print_analysis(op_csv_list):
         file_csv = pd.read_csv(file)
         for i, row in enumerate(file_csv.values):
             y_true.append(row[2])
-            y_pred.append(row[4])
+            y_pred.append(row[5])
 
     print confusion_matrix(y_true, y_pred)
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
@@ -125,7 +125,7 @@ def print_analysis(op_csv_list):
         file_csv = pd.read_csv(file)
         for i, row in enumerate(file_csv.values):
             y_true.append(row[2])
-            y_pred.append(row[4])
+            y_pred.append(row[5])
     print confusion_matrix(y_true, y_pred)
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     ip_csv = args.ip_csv
 
     print "Splitting files polarity"
-    value_range = [100, 10000]
+    value_range = [200, 10000]
     op_csv_list = split_files(ip_csv, value_range)
 
     for file in op_csv_list[:-1]:

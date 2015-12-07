@@ -6,7 +6,7 @@ from pandas import DataFrame
 from textblob import TextBlob
 from sklearn import cluster
 import pandas as pd
-from sklearn.metrics import precision_recall_fscore_support,confusion_matrix
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 
 
 def convert_to_stars(labels, sorted_centroids):
@@ -84,6 +84,7 @@ def extract_sentiment(ip_csv, op_csv):
             # i += 1
 
 
+'''
 def kmeans_clustering(ip_csv):
     op_csv = ip_csv + "_"
     data = []
@@ -93,6 +94,33 @@ def kmeans_clustering(ip_csv):
         for r in rdr:
             data.append(float(r[3]))
     data = np.array(data).reshape(-1, 1)
+    # print data
+    centroids, labels = kmpp(data, 5)
+    # print centroids
+    i = 0
+    for c in np.nditer(centroids):
+        print "Centroid " + str(i), "->", c
+        i += 1
+    write_data(ip_csv, op_csv, labels, "Kmeans++")
+    os.remove(ip_csv)
+    os.rename(op_csv, ip_csv)
+'''
+
+
+def kmeans_clustering(ip_csv):
+    op_csv = ip_csv + "_"
+    data = []
+    with open(ip_csv, "rb") as source:
+        rdr = csv.reader(source)
+        next(rdr)
+        i = 0
+        for r in rdr:
+            data.append([])
+            data[i].append(float(r[3]))
+            data[i].append(float(r[4]))
+            i += 1
+
+    data = np.array(data)  # .reshape(-1, 1)
     # print data
     centroids, labels = kmpp(data, 5)
     # print centroids
@@ -129,6 +157,7 @@ def split_files(ip_csv, range):
 
         return op_csv_list
 
+
 def print_analysis(op_csv_list):
     y_true = []
     y_pred = []
@@ -137,9 +166,10 @@ def print_analysis(op_csv_list):
         file_csv = pd.read_csv(file)
         for i, row in enumerate(file_csv.values):
             y_true.append(row[2])
-            y_pred.append(row[4])
+            y_pred.append(row[5])
     print confusion_matrix(y_true, y_pred)
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -153,7 +183,10 @@ if __name__ == '__main__':
     ip_csv = args.ip_csv
 
     print "Splitting files polarity"
-    range = [100,200,300,400,500,600,700,800,900,1000,10000]
+    #range = [100, 10000]
+    range = [100, 200, 300, 10000]
+    #range = [100, 200, 300, 400, 500, 10000]
+    #range = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 10000]
     op_csv_list = split_files(ip_csv, range)
 
     for file in op_csv_list:

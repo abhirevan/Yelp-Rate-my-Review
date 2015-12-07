@@ -1,9 +1,9 @@
-total reviews 1569264
+total reviews- 1569264
 Review breakup per ratings
-Review 1 star 159811
-Review 2 star 140608
-Review 3 star 222719
-Review 4 star 466599
-Review 5 star 579527
+	1 star 159811
+	Review 2 star 140608
+	Review 3 star 222719
+	Review 4 star 466599
+	Review 5 star 579527
 Min length:  1 Max length:  5101
 Avg length:  675.922770802 Median:  493

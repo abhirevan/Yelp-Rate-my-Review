@@ -20,7 +20,7 @@ def extract_sentiment_subjectivity(ip_csv, op_csv):
         wtr.writerow(next(rdr) + ["Polarity"]+["Subjectivity"])
         i = 0
         for r in rdr:
-            blob = TextBlob(r[0].decode("utf8"))
+            blob = TextBlob(r[1].decode("utf8"))
             wtr.writerow(r + [blob.sentiment.polarity] + [blob.sentiment.subjectivity])
 
 if __name__ == '__main__':
