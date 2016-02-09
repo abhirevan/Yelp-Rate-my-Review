@@ -8,6 +8,7 @@ from sklearn import cluster
 import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 import shutil
+import time
 
 
 def convert_to_stars(labels, sorted_centroids):
@@ -152,6 +153,7 @@ def print_analysis(op_csv_list):
 
 
 if __name__ == '__main__':
+    timestamp1 = time.time()
     parser = argparse.ArgumentParser(
         description='Find clustering for csv',
     )
@@ -169,3 +171,5 @@ if __name__ == '__main__':
     print "-" * 100
 
     print_analysis([op_csv])
+    timestamp2 = time.time()
+    print "This took %.2f seconds" % (timestamp2 - timestamp1)

@@ -144,6 +144,7 @@ def print_analysis(op_csv_list):
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
 
 if __name__ == '__main__':
+    timestamp1 = time.time()
     parser = argparse.ArgumentParser(
         description='Find clustering for csv',
     )

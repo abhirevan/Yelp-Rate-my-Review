@@ -7,6 +7,8 @@ import os
 from sklearn import cluster
 import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+import time
+
 
 
 def write_data(ip_csv, op_csv, labels, type):
@@ -131,6 +133,7 @@ def print_analysis(op_csv_list):
 
 
 if __name__ == '__main__':
+    timestamp1 = time.time()
     parser = argparse.ArgumentParser(
         description='Find clustering for csv',
     )
@@ -142,7 +145,7 @@ if __name__ == '__main__':
     ip_csv = args.ip_csv
 
     print "Splitting files polarity"
-    value_range = [200, 10000]
+    value_range = [700, 10000]
     op_csv_list = split_files(ip_csv, value_range)
 
     for file in op_csv_list[:-1]:
@@ -150,3 +153,5 @@ if __name__ == '__main__':
         spectral_clustering(file, 5)
         print "-" * 100
     print_analysis(op_csv_list)
+    timestamp2 = time.time()
+    print "This took %.2f seconds" % (timestamp2 - timestamp1)

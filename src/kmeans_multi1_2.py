@@ -7,6 +7,7 @@ from textblob import TextBlob
 from sklearn import cluster
 import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+import time
 
 
 def convert_to_stars(labels, sorted_centroids):
@@ -172,6 +173,7 @@ def print_analysis(op_csv_list):
 
 
 if __name__ == '__main__':
+    timestamp1 = time.time()
     parser = argparse.ArgumentParser(
         description='Find clustering for csv',
     )
@@ -184,9 +186,9 @@ if __name__ == '__main__':
 
     print "Splitting files polarity"
     #range = [100, 10000]
-    range = [100, 200, 300, 10000]
+    #range = [100, 200, 300, 10000]
     #range = [100, 200, 300, 400, 500, 10000]
-    #range = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 10000]
+    range = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 10000]
     op_csv_list = split_files(ip_csv, range)
 
     for file in op_csv_list:
@@ -194,3 +196,5 @@ if __name__ == '__main__':
         kmeans_clustering(file)
         print "-" * 100
     print_analysis(op_csv_list)
+    timestamp2 = time.time()
+    print "This took %.2f seconds" % (timestamp2 - timestamp1)

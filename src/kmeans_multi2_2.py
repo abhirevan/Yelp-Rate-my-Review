@@ -5,7 +5,8 @@ import os
 from textblob import TextBlob
 from sklearn import cluster
 import pandas as pd
-from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix, precision_score, recall_score
+import time
 
 
 def convert_to_stars(labels, sorted_centroids, mode):
@@ -131,9 +132,11 @@ def print_analysis(pos_op_csv_lst, neg_op_csv_lst):
 
     print confusion_matrix(y_true, y_pred)
     print precision_recall_fscore_support(y_true, y_pred, average='micro')
-
+    print precision_score(y_true, y_pred, average=None)
+    print recall_score(y_true, y_pred, average=None)
 
 if __name__ == '__main__':
+    timestamp1 = time.time()
     parser = argparse.ArgumentParser(
         description='Find clustering for csv',
     )
@@ -149,9 +152,9 @@ if __name__ == '__main__':
 
     print "Splitting files polarity"
     #range = [100, 10000]
-    range = [100, 200, 300, 10000]
+    #range = [100, 200, 300, 10000]
     #range = [100, 200, 300, 400, 500, 10000]
-    #range = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 10000]
+    range = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 10000]
     pos_op_csv_lst, neg_op_csv_lst = split_files(ip_csv, range)
 
     # Positive list
@@ -170,3 +173,5 @@ if __name__ == '__main__':
         print "-" * 100
 
     print_analysis(pos_op_csv_lst, neg_op_csv_lst)
+    timestamp2 = time.time()
+    print "This took %.2f seconds" % (timestamp2 - timestamp1)
